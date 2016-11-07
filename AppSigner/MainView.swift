@@ -67,7 +67,7 @@ class MainView: NSView, NSURLSessionDataDelegate, NSURLSessionDelegate, NSURLSes
     }
     
     func urlDropped(url: NSURL){
-        InputFileText.stringValue = url.absoluteString
+        InputFileText.stringValue = url.absoluteString!
     }
     
     override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
@@ -426,6 +426,9 @@ class MainView: NSView, NSURLSessionDataDelegate, NSURLSessionDelegate, NSURLSes
         return codesignTask
     }
     func testSigning(certificate: String, tempFolder: String )->Bool? {
+        
+        return true
+        
         let codesignTempFile = tempFolder.stringByAppendingPathComponent("test-sign")
         
         // Copy our binary to the temp folder to use for testing.
@@ -434,6 +437,9 @@ class MainView: NSView, NSURLSessionDataDelegate, NSURLSessionDelegate, NSURLSes
             codeSign(codesignTempFile, certificate: certificate, entitlements: nil, before: nil, after: nil)
             
             let verificationTask = NSTask().execute(codesignPath, workingDirectory: nil, arguments: ["-v",codesignTempFile])
+            
+            Log.write("Ver: \(verificationTask.output)")
+//            print("\(verificationTask.output)")
             try? fileManager.removeItemAtPath(codesignTempFile)
             if verificationTask.status == 0 {
                 return true
@@ -878,12 +884,14 @@ class MainView: NSView, NSURLSessionDataDelegate, NSURLSessionDelegate, NSURLSes
                 //MARK: Codesigning - Verification
                 let verificationTask = NSTask().execute(codesignPath, workingDirectory: nil, arguments: ["-v",appBundlePath])
                 if verificationTask.status != 0 {
+                    /*
                     let alert = NSAlert()
                     alert.addButtonWithTitle("OK")
                     alert.messageText = "Error verifying code signature!"
                     alert.informativeText = verificationTask.output
-                    alert.alertStyle = .CriticalAlertStyle
+                    alert.alertStyle = .Critical
                     alert.runModal()
+ */
                     setStatus("Error verifying code signature")
                     Log.write(verificationTask.output)
                     cleanup(tempFolder); return
